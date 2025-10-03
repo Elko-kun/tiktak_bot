@@ -3,7 +3,6 @@ import time
 import schedule
 from telegram import Bot
 from telegram.ext import Updater, CommandHandler
-import asyncio
 import datetime
 import re
 import threading
@@ -23,7 +22,7 @@ def get_user_settings(chat_id):
     if chat_id not in user_settings:
         user_settings[chat_id] = {
             "name": "",
-            "schedule": "1 minute",
+            "schedule": "1 minute", 
             "is_active": True
         }
     return user_settings[chat_id]
@@ -46,7 +45,7 @@ def start(update, context):
 def help_command(update, context):
     update.message.reply_text(
         "📋 Доступные команды:\n\n"
-        "/start - подписаться на уведомления\n"
+        "/start - подписаться на уведомления\n" 
         "/settime - установить время\n"
         "/help - эта справка\n\n"
         "⏰ Примеры:\n"
@@ -60,7 +59,7 @@ def set_time(update, context):
     if not context.args:
         update.message.reply_text(
             "⏰ Укажите время:\n"
-            "Пример: /settime 18:00\n"
+            "Пример: /settime 18:00\n" 
             "Или: /settime 30 minutes"
         )
         return
@@ -74,7 +73,7 @@ def set_time(update, context):
     elif re.match(r'^(\d+)\s+(minutes?)$', time_input.lower()):
         match = re.match(r'^(\d+)\s+(minutes?)$', time_input.lower())
         minutes = match.group(1)
-        settings['schedule'] = f"каждые {minutes} минут"
+        settings['schedule'] = f"каждые {minutes} минут" 
         update.message.reply_text(f"✅ Установлены уведомления каждые {minutes} минут!")
     else:
         update.message.reply_text("❌ Неверный формат времени!")
@@ -84,25 +83,26 @@ def send_notifications():
     active_users = {cid: settings for cid, settings in user_settings.items() if settings["is_active"]}
     
     if not active_users:
+        print("ℹ️ Нет активных пользователей для уведомления")
         return
     
-    print(f"🔔 Проверяю уведомления для {len(active_users)} пользователей...")
+    current_time = datetime.datetime.now().strftime("%H:%M:%S")
+    print(f"🔔 [{current_time}] Отправляю уведомления {len(active_users)} пользователям...")
     
     bot = Bot(token=TOKEN)
     
     for chat_id, settings in active_users.items():
         try:
-            # Отправляем сообщение синхронно
-            send_message_sync(bot, chat_id, settings['name'])
+            send_message(bot, chat_id, settings['name'])
         except Exception as e:
             print(f"❌ Ошибка у пользователя {chat_id}: {e}")
 
-def send_message_sync(bot, chat_id, user_name):
-    """Отправляет одно сообщение синхронно"""
+def send_message(bot, chat_id, user_name):
+    """Отправляет одно сообщение"""
     try:
         messages = [
             f"Привет, {user_name}! 🔔 Время сделать перерыв! 💧",
-            f"{user_name}, ⏰ оторвитесь от экрана! 👀",
+            f"{user_name}, ⏰ оторвитесь от экрана! 👀", 
             f"💡 {user_name}, время размяться! 🏃‍♂️",
             f"🌿 {user_name}, не забудьте про осанку! 🪑",
             f"💧 {user_name}, выпейте воды! 🥤"
@@ -111,11 +111,10 @@ def send_message_sync(bot, chat_id, user_name):
         import random
         text = random.choice(messages)
         
-        # Синхронная отправка сообщения
         bot.send_message(chat_id=chat_id, text=text)
         print(f"✅ Уведомление отправлено {user_name}")
     except Exception as e:
-        print(f"❌ Ошибка отправки: {e}")
+        print(f"❌ Ошибка отправки {chat_id}: {e}")
 
 def run_scheduler():
     """Запускает планировщик в отдельном потоке"""
@@ -135,10 +134,10 @@ def main():
     print("🚀 БОТ ЗАПУСКАЕТСЯ НА RENDER")
     print("=" * 50)
     
-    # Создаем updater (старая версия API)
+    # Создаем updater
     updater = Updater(TOKEN, use_context=True)
     
-    # Получаем диспетчер для регистрации обработчиков
+    # Получаем диспетчер для регистрации обработчиков  
     dp = updater.dispatcher
     
     # Добавляем обработчики команд
