@@ -2,7 +2,7 @@ import os
 import time
 import schedule
 from telegram import Bot
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler
 import asyncio
 import datetime
 import re
@@ -95,13 +95,12 @@ def send_notifications():
 
 async def send_notifications_async(active_users):
     """Асинхронно отправляет уведомления"""
-    bot = Bot(token=TOKEN)
-    
-    for chat_id, settings in active_users.items():
-        try:
-            await send_message(bot, chat_id, settings['name'])
-        except Exception as e:
-            print(f"❌ Ошибка у пользователя {chat_id}: {e}")
+    async with Bot(token=TOKEN) as bot:
+        for chat_id, settings in active_users.items():
+            try:
+                await send_message(bot, chat_id, settings['name'])
+            except Exception as e:
+                print(f"❌ Ошибка у пользователя {chat_id}: {e}")
 
 async def send_message(bot, chat_id, user_name):
     """Отправляет одно сообщение"""
@@ -135,12 +134,12 @@ def run_scheduler():
         schedule.run_pending()
         time.sleep(1)
 
-def main():
+async def main():
     print("=" * 50)
     print("🚀 БОТ ЗАПУСКАЕТСЯ НА RENDER")
     print("=" * 50)
     
-    # Создаем приложение (новая версия API)
+    # Создаем приложение
     application = Application.builder().token(TOKEN).build()
     
     # Добавляем обработчики команд
@@ -158,7 +157,7 @@ def main():
     print("-" * 50)
     
     # Запускаем бота
-    application.run_polling()
+    await application.run_polling()
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
